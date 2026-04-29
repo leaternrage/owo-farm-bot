@@ -282,7 +282,7 @@ class FarmCog(commands.Cog):
             if "won" in cnt: self.cf_wins += 1
             elif "lost" in cnt: self.cf_losses += 1
         full_text = get_owo_text(message).lower()
-        captcha_keywords = ["beedoo", "captcha", "verify that you are human", "complete your captcha", "banned for macros", "banned for botting"]
+        captcha_keywords = ["beedoo", "captcha", "verify that you are human", "complete your captcha", "banned for macros", "banned for botting", "are you a real human", "please use the link below", "complete this within"]
         if any(x in full_text for x in captcha_keywords):
             webhook_url = self.config.get("Notifications", {}).get("Captcha_Webhook_URL", "")
             if "banned" in full_text:
