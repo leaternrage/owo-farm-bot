@@ -1,0 +1,54 @@
+{
+    "Account_Token": "YOUR_DISCORD_TOKEN_HERE",
+    "Channel_ID": "YOUR_CHANNEL_ID_HERE",
+    "Admin_ID": "YOUR_USER_ID_HERE",
+    "Bot_Prefix": ".",
+    "System": {
+        "General_Status": true,
+        "Auto_Hunt_Battle": true,
+        "Auto_Pray": true,
+        "Auto_Daily_Vote": false,
+        "Auto_Box_Open": false,
+        "Auto_Sell_All": true,
+        "Auto_Gem_Use": false,
+        "Auto_Coinflip": true,
+        "Auto_Blackjack": false,
+        "Random_Chat": true,
+        "Auto_Break_System": true
+    },
+    "Automation": {
+        "Gem_List": [
+            "gem71", "gem73", "gem74",
+            "gem51", "gem53", "gem54",
+            "gem1",  "gem3",  "gem4"
+        ],
+        "Sell_Interval_Minutes": 20
+    },
+    "Gambling": {
+        "Mode": "Both",
+        "Bet_Type": "Dynamic",
+        "Fixed_Amount": 1000,
+        "Dynamic_Percent": 0.01,
+        "Min_Bet": 100,
+        "Max_Bet": 50000,
+        "BJ_Strategy_Enabled": true
+    },
+    "Notifications": {
+        "Captcha_Webhook_URL": "YOUR_DISCORD_WEBHOOK_URL_HERE",
+        "Ban_Webhook_URL": ""
+    },
+    "Pray_Target": {
+        "Target_User_ID": "TARGET_USER_ID_HERE"
+    },
+    "Coinflip": {
+        "Starting_Amount": 100,
+        "Max_Loss_Streak": 5,
+        "Loss_Streak_Cooldown_Seconds": 45
+    },
+    "Timing": {
+        "Command_Delay_Min": 15,
+        "Command_Delay_Max": 25,
+        "Break_Message_Limit": 50,
+        "Break_Duration_Minutes": 4
+    }
+}

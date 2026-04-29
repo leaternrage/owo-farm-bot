@@ -52,12 +52,12 @@ def basic_strategy(p, d_up, soft):
 def parse_game_state(text):
     card_pattern = r":([^:]+):\d+"
     all_values = re.findall(r"\[([^\]]+)\]", text)
-    if len(all_values) < 2: raise ValueError("Eksik veri")
+    if len(all_values) < 2: raise ValueError("Missing data")
     d_val_str = all_values[0].replace("+", "").replace("?", "").replace("*", "").strip()
     d_rank = extract_rank(d_val_str) or 10
     lines = [l.strip() for l in text.splitlines() if l.strip()]
     emoji_lines = [re.findall(card_pattern, l) for l in lines if re.findall(card_pattern, l)]
-    if not emoji_lines: raise ValueError("Emoji yok")
+    if not emoji_lines: raise ValueError("No emoji")
     if len(emoji_lines) > 1:
         p_cards = []
         for i in range(1, len(emoji_lines)): p_cards.extend(emoji_lines[i])
@@ -95,7 +95,7 @@ class FarmCog(commands.Cog):
         self.config = bot.config
         self.current_cash = 0
         self.initial_cash = 0
-        self.last_status = "Hazir"
+        self.last_status = "Ready"
         self.start_time = time.time()
         self.hunt_count = 0
         self.battle_count = 0
@@ -107,21 +107,21 @@ class FarmCog(commands.Cog):
 
     def start_tasks(self):
         l = self.bot.loop
-        l.create_task(self.ana_dongu())
-        l.create_task(self.cash_check_dongusu())
-        l.create_task(self.pray_dongusu())
-        l.create_task(self.satis_dongusu())
+        l.create_task(self.main_loop())
+        l.create_task(self.cash_check_loop())
+        l.create_task(self.pray_loop())
+        l.create_task(self.sell_loop())
 
-    async def satis_dongusu(self):
+    async def sell_loop(self):
         await self.bot.wait_until_ready()
-        periyot = self.config.get("Otomasyon", {}).get("Satis_Periyodu_Dakika", 20)
-        await asyncio.sleep(periyot * 60)
-        channel = self.bot.get_channel(int(self.config["Kanal_ID"]))
-        webhook_url = self.config.get("Bildirim_Sistemi", {}).get("Captcha_Webhook_URL", "")
+        interval = self.config.get("Automation", {}).get("Sell_Interval_Minutes", 20)
+        await asyncio.sleep(interval * 60)
+        channel = self.bot.get_channel(int(self.config["Channel_ID"]))
+        webhook_url = self.config.get("Notifications", {}).get("Captcha_Webhook_URL", "")
         while True:
-            if not self.config["Sistem"].get("Genel_Durum_Acik", True):
+            if not self.config["System"].get("General_Status", True):
                 await asyncio.sleep(5); continue
-            if self.config["Sistem"].get("Oto_Sell_All", True):
+            if self.config["System"].get("Auto_Sell_All", True):
                 try:
                     await channel.send("owo sell all")
                     await asyncio.sleep(2)
@@ -129,37 +129,37 @@ class FarmCog(commands.Cog):
                     uptime_seconds = int(time.time() - self.start_time)
                     hours, remainder = divmod(uptime_seconds, 3600)
                     minutes, seconds = divmod(remainder, 60)
-                    uptime_str = f"{hours}s {minutes}dk {seconds}sn"
+                    uptime_str = f"{hours}h {minutes}m {seconds}s"
                     profit = self.current_cash - self.initial_cash
                     bj_total = self.bj_wins + self.bj_losses + self.bj_ties
                     bj_rate = (self.bj_wins / bj_total * 100) if bj_total > 0 else 0.0
                     cf_total = self.cf_wins + self.cf_losses
                     cf_rate = (self.cf_wins / cf_total * 100) if cf_total > 0 else 0.0
-                    server_name = channel.guild.name if channel.guild else "Bilinmiyor"
-                    channel_name = channel.name if hasattr(channel, 'name') else "Bilinmiyor"
+                    server_name = channel.guild.name if channel.guild else "Unknown"
+                    channel_name = channel.name if hasattr(channel, 'name') else "Unknown"
                     report_desc = (
-                        f"💰 **Bakiye:** Başlangıç: `{self.initial_cash:,}` | Güncel: `{self.current_cash:,}`\n"
-                        f"{'📈' if profit >= 0 else '📉'} **Kar/Zarar:** `{profit:+,}` cowoncy\n\n"
-                        f"🃏 **Blackjack:** {self.bj_wins}W / {self.bj_losses}L / {self.bj_ties}T (🚀 %{bj_rate:.1f})\n"
-                        f"🎲 **Coinflip:** {self.cf_wins}W / {self.cf_losses}L (🚀 %{cf_rate:.1f})\n"
+                        f"💰 **Balance:** Start: `{self.initial_cash:,}` | Current: `{self.current_cash:,}`\n"
+                        f"{'📈' if profit >= 0 else '📉'} **Profit/Loss:** `{profit:+,}` cowoncy\n\n"
+                        f"🃏 **Blackjack:** {self.bj_wins}W / {self.bj_losses}L / {self.bj_ties}T (🚀 {bj_rate:.1f}%)\n"
+                        f"🎲 **Coinflip:** {self.cf_wins}W / {self.cf_losses}L (🚀 {cf_rate:.1f}%)\n"
                         f"🏹 **Hunting:** {self.hunt_count} Hunt | {self.battle_count} Battle\n\n"
-                        f"⏱ **Çalışma Süresi:** {uptime_str}\n"
-                        f"⚙ **Config:** `{self.config['Bot_Prefix']}` | **Kanal:** {server_name} > #{channel_name}"
+                        f"⏱ **Uptime:** {uptime_str}\n"
+                        f"⚙ **Channel:** {server_name} > #{channel_name}"
                     )
-                    await send_webhook(webhook_url, f"📊 MANUEL DURUM RAPORU: {self.bot.user.name}", report_desc, 0x00ffaa)
-                    periyot = self.config.get("Otomasyon", {}).get("Satis_Periyodu_Dakika", 20)
-                    await asyncio.sleep(periyot * 60)
+                    await send_webhook(webhook_url, f"📊 STATUS REPORT: {self.bot.user.name}", report_desc, 0x00ffaa)
+                    interval = self.config.get("Automation", {}).get("Sell_Interval_Minutes", 20)
+                    await asyncio.sleep(interval * 60)
                 except: await asyncio.sleep(60)
             else: await asyncio.sleep(30)
 
-    async def pray_dongusu(self):
+    async def pray_loop(self):
         await self.bot.wait_until_ready()
-        channel = self.bot.get_channel(int(self.config["Kanal_ID"]))
-        target = self.config.get("Bagis_Pray", {}).get("Hedef_Kullanici_ID", "")
+        channel = self.bot.get_channel(int(self.config["Channel_ID"]))
+        target = self.config.get("Pray_Target", {}).get("Target_User_ID", "")
         while True:
-            if not self.config["Sistem"].get("Genel_Durum_Acik", True):
+            if not self.config["System"].get("General_Status", True):
                 await asyncio.sleep(5); continue
-            if self.config["Sistem"].get("Oto_Pray", True):
+            if self.config["System"].get("Auto_Pray", True):
                 try:
                     await channel.send(f"owo pray {target}")
                     await asyncio.sleep(365)
@@ -177,17 +177,17 @@ class FarmCog(commands.Cog):
         sys.stdout.write(f"\r{Style.BRIGHT}{line}")
         sys.stdout.flush()
 
-    async def cash_check_dongusu(self):
+    async def cash_check_loop(self):
         await self.bot.wait_until_ready()
-        channel = self.bot.get_channel(int(self.config["Kanal_ID"]))
+        channel = self.bot.get_channel(int(self.config["Channel_ID"]))
         while True:
             try: await channel.send("owo cash"); await asyncio.sleep(600)
             except: await asyncio.sleep(60)
 
-    async def ana_dongu(self):
+    async def main_loop(self):
         await self.bot.wait_until_ready()
-        channel = self.bot.get_channel(int(self.config["Kanal_ID"]))
-        self.update_display("Ilk bakiye kontrolu...")
+        channel = self.bot.get_channel(int(self.config["Channel_ID"]))
+        self.update_display("Checking balance...")
         await channel.send("owo cash")
         await asyncio.sleep(5)
         while True:
@@ -195,34 +195,34 @@ class FarmCog(commands.Cog):
                 with open('config.json', 'r', encoding='utf-8') as f:
                     self.config = json.load(f)
             except: pass
-            if not self.config["Sistem"].get("Genel_Durum_Acik", True):
+            if not self.config["System"].get("General_Status", True):
                 await asyncio.sleep(5); continue
             try:
-                hb_s = "AÇIK" if self.config["Sistem"].get("Oto_Hunt_Battle") else "KAPALI"
-                bj_s = "AÇIK" if self.config["Sistem"].get("Oto_Blackjack") else "KAPALI"
-                cf_s = "AÇIK" if self.config["Sistem"].get("Oto_Coinflip") else "KAPALI"
-                self.update_display(f"Modlar: H/B:{hb_s} BJ:{bj_s} CF:{cf_s}")
-                if self.config["Sistem"].get("Oto_Hunt_Battle"):
+                hb_s = "ON" if self.config["System"].get("Auto_Hunt_Battle") else "OFF"
+                bj_s = "ON" if self.config["System"].get("Auto_Blackjack") else "OFF"
+                cf_s = "ON" if self.config["System"].get("Auto_Coinflip") else "OFF"
+                self.update_display(f"Modes: H/B:{hb_s} BJ:{bj_s} CF:{cf_s}")
+                if self.config["System"].get("Auto_Hunt_Battle"):
                     await channel.send("owo h")
                     self.hunt_count += 1
                     await asyncio.sleep(2)
                     await channel.send("owo b")
                     self.battle_count += 1
                     await asyncio.sleep(3)
-                bet = int(self.current_cash * self.config["Kumar"].get("Dinamik_Yuzde", 0.01)) if self.current_cash > 0 else 1000
-                bet = max(self.config["Kumar"].get("Min_Bet", 100), min(bet, 50000))
-                bj_y = self.config["Sistem"].get("Oto_Blackjack", False)
-                cf_y = self.config["Sistem"].get("Oto_Coinflip", False)
+                bet = int(self.current_cash * self.config["Gambling"].get("Dynamic_Percent", 0.01)) if self.current_cash > 0 else 1000
+                bet = max(self.config["Gambling"].get("Min_Bet", 100), min(bet, 50000))
+                bj_y = self.config["System"].get("Auto_Blackjack", False)
+                cf_y = self.config["System"].get("Auto_Coinflip", False)
                 choice = None
                 if bj_y and cf_y: choice = "BJ" if random.random() < 0.75 else "CF"
                 elif bj_y: choice = "BJ"
                 elif cf_y: choice = "CF"
                 if choice == "CF":
-                    self.update_display(f"CF Atiliyor ({bet})")
+                    self.update_display(f"Coinflip ({bet})")
                     await channel.send(f"owo cf {bet}")
                     await asyncio.sleep(8); await channel.send("owo cash")
                 elif choice == "BJ":
-                    self.update_display(f"BJ Atiliyor ({bet})")
+                    self.update_display(f"Blackjack ({bet})")
                     last_id = None
                     async for m in channel.history(limit=5):
                         if m.author.id == OWO_ID: last_id = m.id; break
@@ -238,7 +238,7 @@ class FarmCog(commands.Cog):
                 if random.random() < 0.15:
                     await channel.send(random.choice(CHAT_MESSAGES))
                     await asyncio.sleep(random.uniform(2, 4))
-                self.update_display("Beklemede...")
+                self.update_display("Waiting...")
                 await asyncio.sleep(random.randint(8, 12))
             except: await asyncio.sleep(10)
 
@@ -284,22 +284,21 @@ class FarmCog(commands.Cog):
         full_text = get_owo_text(message).lower()
         captcha_keywords = ["beedoo", "captcha", "verify that you are human", "complete your captcha", "banned for macros", "banned for botting"]
         if any(x in full_text for x in captcha_keywords):
-            webhook_url = self.config.get("Bildirim_Sistemi", {}).get("Captcha_Webhook_URL", "")
+            webhook_url = self.config.get("Notifications", {}).get("Captcha_Webhook_URL", "")
             if "banned" in full_text:
-                title = "🔨 HESAP BANLANDI!"
-                desc = f"Hesap macro/bot tespiti nedeniyle banlandı!\n\n**Mesaj:** {message.content or '(embed)'}"
+                title = "🔨 ACCOUNT BANNED!"
+                desc = f"Account was banned for macro/botting detection!\n\n**Message:** {message.content or '(embed)'}"
                 color = 0xff0000
             else:
-                import re as _re
-                warn_match = _re.search(r"\((\d+/\d+)\)", full_text)
+                warn_match = re.search(r"\((\d+/\d+)\)", full_text)
                 warn_str = warn_match.group(1) if warn_match else "?"
-                title = f"⚠️ CAPTCHA UYARISI! ({warn_str})"
-                desc = f"OwO captcha doğrulaması istedi! Bot durduruldu.\n\n**Uyarı:** {warn_str}"
+                title = f"⚠️ CAPTCHA DETECTED! ({warn_str})"
+                desc = f"OwO requested captcha verification! Bot stopped.\n\n**Warning:** {warn_str}"
                 color = 0xff8800
             await send_webhook(webhook_url, title, desc, color)
-            self.config["Sistem"]["Genel_Durum_Acik"] = False
-            self.update_display("🚨 CAPTCHA - BOT DURDURULDU!")
-            print(f"\n\n{'='*50}\n🚨 CAPTCHA ALGILANDI! Bot durduruldu.\n{'='*50}\n")
+            self.config["System"]["General_Status"] = False
+            self.update_display("🚨 CAPTCHA - BOT STOPPED!")
+            print(f"\n\n{'='*50}\n🚨 CAPTCHA DETECTED! Bot stopped.\n{'='*50}\n")
 
 class OwoProBot(commands.Bot):
     def __init__(self, config):
@@ -311,4 +310,4 @@ class OwoProBot(commands.Bot):
 
 if __name__ == "__main__":
     with open('config.json', 'r', encoding='utf-8') as f: cfg = json.load(f)
-    bot = OwoProBot(cfg); bot.run(cfg["Hesap_Tokeni"])
+    bot = OwoProBot(cfg); bot.run(cfg["Account_Token"])
