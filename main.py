@@ -192,7 +192,7 @@ class FarmCog(commands.Cog):
         await asyncio.sleep(5)
         while True:
             try:
-                with open('ayarlar.json', 'r', encoding='utf-8') as f:
+                with open('config.json', 'r', encoding='utf-8') as f:
                     self.config = json.load(f)
             except: pass
             if not self.config["Sistem"].get("Genel_Durum_Acik", True):
@@ -310,5 +310,5 @@ class OwoProBot(commands.Bot):
         print(""); cog = FarmCog(self); await self.add_cog(cog); cog.start_tasks()
 
 if __name__ == "__main__":
-    with open('ayarlar.json', 'r', encoding='utf-8') as f: cfg = json.load(f)
+    with open('config.json', 'r', encoding='utf-8') as f: cfg = json.load(f)
     bot = OwoProBot(cfg); bot.run(cfg["Hesap_Tokeni"])
