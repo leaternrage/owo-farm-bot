@@ -1,0 +1,56 @@
+{
+    "Hesap_Tokeni": "DISCORD_TOKEN_BURAYA",
+    "Kanal_ID": "KANAL_ID_BURAYA",
+    "Yonetici_ID": "KULLANICI_ID_BURAYA",
+    "Bot_Prefix": ".",
+    "Sistem": {
+        "Genel_Durum_Acik": true,
+        "Oto_Hunt_Battle": true,
+        "Oto_Pray": true,
+        "Oto_Daily_Vote": false,
+        "Oto_Box_Open": false,
+        "Oto_Sell_All": true,
+        "Oto_Gem_Use": false,
+        "Yaziyor_Simulasyonu": true,
+        "Saatlik_Rapor": true,
+        "Oto_Coinflip": true,
+        "Oto_Blackjack": false,
+        "Rastgele_Sohbet": true,
+        "Oto_Mola_Sistemi": true
+    },
+    "Otomasyon": {
+        "Gem_Listesi": [
+            "gem71", "gem73", "gem74",
+            "gem51", "gem53", "gem54",
+            "gem1",  "gem3",  "gem4"
+        ],
+        "Satis_Periyodu_Dakika": 20
+    },
+    "Kumar": {
+        "Mod": "Both",
+        "Bet_Tipi": "Dinamik",
+        "Sabit_Miktar": 1000,
+        "Dinamik_Yuzde": 0.01,
+        "Min_Bet": 100,
+        "Maks_Bet": 50000,
+        "BJ_Strateji_Aktif": true
+    },
+    "Bildirim_Sistemi": {
+        "Captcha_Webhook_URL": "DISCORD_WEBHOOK_URL_BURAYA",
+        "Ban_Webhook_URL": ""
+    },
+    "Bagis_Pray": {
+        "Hedef_Kullanici_ID": "HEDEF_KULLANICI_ID_BURAYA"
+    },
+    "Coinflip": {
+        "Baslama_Miktari": 100,
+        "Maksimum_Kayit_Serisi": 5,
+        "Seri_Kayip_Molasi_Saniye": 45
+    },
+    "Zamanlama": {
+        "Komut_Gecikmesi_Enaz": 15,
+        "Komut_Gecikmesi_Enfazla": 25,
+        "Mola_Icin_Mesaj_Limiti": 50,
+        "Mola_Bekleme_Suresi_Dakika": 4
+    }
+}

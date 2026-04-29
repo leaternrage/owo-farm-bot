@@ -1,0 +1,6 @@
+ayarlar.json
+dist/
+build/
+__pycache__/
+*.pyc
+*.pyo
